@@ -11,13 +11,11 @@ fn run_program(memory: &[i32]) -> Result<Vec<i32>, &str> {
       let a = output[p1];
       let b = output[p2];
       let c = a + b;
-      println!("EXEC {}->{} + {}->{} = {}->{}", p1, a, p2, b, p3, c);
       output[p3] = c;
     } else if op == 2 {
       let a = output[p1];
       let b = output[p2];
       let c = a * b;
-      println!("EXEC {}->{} * {}->{} = {}->{}", p1, a, p2, b, p3, c);
       output[p3] = c;
     } else if op == 99 {
       return Ok(output);
@@ -34,6 +32,23 @@ pub fn print_memory(memory: &[i32]) {
   }
 }
 
+pub fn input_search(memory: &[i32]) -> Result<i32, &str> {
+  let mut program = memory.to_owned();
+
+  for verb in 0..99 {
+    for noun in 0..99 {
+      program[1] = noun;
+      program[2] = verb;
+      let output = run_program(&program).expect("Program fault");
+      if output[0] == 19690720 {
+        return Ok(100 * noun + verb);
+      }
+    }
+  }
+
+  Err("Not found")
+}
+
 pub fn run(handle2: &mut BufRead) {
   for line in handle2.lines() {
     let mut memory: Vec<i32> = Vec::new();
@@ -42,7 +57,10 @@ pub fn run(handle2: &mut BufRead) {
     for op in ops {
       memory.push(op.parse::<i32>().unwrap());
     }
-    let mem = run_program(&mut memory.to_owned()).unwrap();
-    print_memory(&mem);
+    let result = input_search(&memory);
+    match result {
+      Ok(answer) => println!("{}", answer),
+      Err(_) => println!("No result"),
+    }
   }
 }
